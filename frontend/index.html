@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Real Estate Ledger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid #334155; padding: 1.5rem 2rem; }
+        .header h1 { font-size: 1.5rem; color: #38bdf8; }
+        .header p { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab { padding: 0.6rem 1.2rem; background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; cursor: pointer; color: #94a3b8; font-size: 0.875rem; transition: all 0.2s; }
+        .tab:hover { border-color: #38bdf8; color: #38bdf8; }
+        .tab.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 600; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.1rem; color: #38bdf8; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.6rem 0.8rem; background: #0f172a; border: 1px solid #334155; border-radius: 0.4rem; color: #e2e8f0; font-size: 0.9rem; font-family: inherit; }
+        .form-group textarea { min-height: 80px; resize: vertical; font-family: 'Consolas', monospace; font-size: 0.8rem; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #38bdf8; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn { padding: 0.65rem 1.5rem; border: none; border-radius: 0.4rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background: #38bdf8; color: #0f172a; }
+        .btn-primary:hover { background: #7dd3fc; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #f87171; }
+        .btn-secondary { background: #334155; color: #e2e8f0; }
+        .btn-secondary:hover { background: #475569; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result { margin-top: 1rem; padding: 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 0.4rem; font-family: 'Consolas', monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow-y: auto; }
+        .result.success { border-color: #22c55e; }
+        .result.error { border-color: #ef4444; }
+        .timeline { margin-top: 1rem; }
+        .timeline-item { display: flex; gap: 1rem; padding: 1rem 0; border-left: 2px solid #334155; padding-left: 1.5rem; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -6px; top: 1.2rem; width: 10px; height: 10px; background: #38bdf8; border-radius: 50%; }
+        .timeline-item .type { font-weight: 600; color: #38bdf8; font-size: 0.85rem; }
+        .timeline-item .meta { color: #94a3b8; font-size: 0.8rem; margin-top: 0.25rem; }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; }
+        .badge-green { background: #166534; color: #4ade80; }
+        .badge-red { background: #7f1d1d; color: #fca5a5; }
+        .key-display { background: #0f172a; padding: 0.8rem; border-radius: 0.4rem; font-family: 'Consolas', monospace; font-size: 0.75rem; word-break: break-all; border: 1px solid #334155; margin-top: 0.5rem; }
+        .warning { background: #422006; border: 1px solid #92400e; color: #fbbf24; padding: 0.75rem 1rem; border-radius: 0.4rem; font-size: 0.85rem; margin-bottom: 1rem; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Blockchain Real Estate Ledger</h1>
+        <p>Tamper-proof property ownership for India</p>
+    </div>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-panel="keys">Key Generation</div>
+            <div class="tab" data-panel="register">Register Property</div>
+            <div class="tab" data-panel="lookup">Property Lookup</div>
+            <div class="tab" data-panel="sale">Initiate Sale</div>
+            <div class="tab" data-panel="confirm">Confirm Sale</div>
+            <div class="tab" data-panel="history">Ownership History</div>
+            <div class="tab" data-panel="validate">Chain Validation</div>
+        </div>
+
+        <!-- Key Generation -->
+        <div class="panel active" id="panel-keys">
+            <div class="card">
+                <h2>Generate ECDSA Key Pair</h2>
+                <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">Generate a secp256k1 key pair. Your private key is your identity — save it securely.</p>
+                <button class="btn btn-primary" onclick="generateKeys()">Generate Keys</button>
+                <div id="keys-result"></div>
+            </div>
+        </div>
+
+        <!-- Register Property -->
+        <div class="panel" id="panel-register">
+            <div class="card">
+                <h2>Register New Property</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Property ID</label>
+                        <input type="text" id="reg-property-id" placeholder="MH-MUM-2024-00142">
+                    </div>
+                    <div class="form-group">
+                        <label>Registration Number</label>
+                        <input type="text" id="reg-number" placeholder="MH-REG-2024-556677">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Owner Public Key (PEM)</label>
+                    <textarea id="reg-owner-key" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="reg-location" placeholder="Flat 4B, Lodha Altamount, Mumbai">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Area (sq ft)</label>
+                        <input type="number" id="reg-area" placeholder="1200">
+                    </div>
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" id="reg-state" placeholder="Maharashtra">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>District</label>
+                    <input type="text" id="reg-district" placeholder="Mumbai">
+                </div>
+                <button class="btn btn-primary" onclick="registerProperty()">Register on Blockchain</button>
+                <div id="register-result"></div>
+            </div>
+        </div>
+
+        <!-- Property Lookup -->
+        <div class="panel" id="panel-lookup">
+            <div class="card">
+                <h2>Property Lookup</h2>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="lookup-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <button class="btn btn-primary" onclick="lookupProperty()">Search</button>
+                <div id="lookup-result"></div>
+            </div>
+            <div class="card">
+                <h2>Verify Ownership</h2>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="verify-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <div class="form-group">
+                    <label>Public Key to Verify</label>
+                    <textarea id="verify-key" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="verifyOwner()">Verify</button>
+                <div id="verify-result"></div>
+            </div>
+        </div>
+
+        <!-- Initiate Sale -->
+        <div class="panel" id="panel-sale">
+            <div class="card">
+                <h2>Initiate Property Sale</h2>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="sale-property-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <div class="form-group">
+                    <label>Seller Public Key (PEM)</label>
+                    <textarea id="sale-seller-key" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Buyer Public Key (PEM)</label>
+                    <textarea id="sale-buyer-key" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (INR)</label>
+                    <input type="number" id="sale-price" placeholder="5000000">
+                </div>
+                <button class="btn btn-primary" onclick="initiateSale()">Initiate Sale</button>
+                <div id="sale-result"></div>
+            </div>
+            <div class="card">
+                <h2>Cancel Pending Sale</h2>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="cancel-property-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <button class="btn btn-danger" onclick="cancelSale()">Cancel Sale</button>
+                <div id="cancel-result"></div>
+            </div>
+        </div>
+
+        <!-- Confirm Sale -->
+        <div class="panel" id="panel-confirm">
+            <div class="card">
+                <h2>Confirm Sale (Sign & Submit)</h2>
+                <div class="warning">The seller must sign the payload returned from /initiate-sale using their private key, then submit it here.</div>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="conf-property-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <div class="form-group">
+                    <label>Seller Public Key (PEM)</label>
+                    <textarea id="conf-seller-key"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Buyer Public Key (PEM)</label>
+                    <textarea id="conf-buyer-key"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (INR)</label>
+                    <input type="number" id="conf-price" placeholder="5000000">
+                </div>
+                <div class="form-group">
+                    <label>Seller Signature (Hex)</label>
+                    <textarea id="conf-signature" placeholder="3045022100a8f3..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="confirmSale()">Confirm Sale</button>
+                <div id="confirm-result"></div>
+            </div>
+        </div>
+
+        <!-- Ownership History -->
+        <div class="panel" id="panel-history">
+            <div class="card">
+                <h2>Ownership History</h2>
+                <div class="form-group">
+                    <label>Property ID</label>
+                    <input type="text" id="history-id" placeholder="MH-MUM-2024-00142">
+                </div>
+                <button class="btn btn-primary" onclick="getHistory()">Load History</button>
+                <div id="history-result"></div>
+            </div>
+        </div>
+
+        <!-- Chain Validation -->
+        <div class="panel" id="panel-validate">
+            <div class="card">
+                <h2>Blockchain Integrity Check</h2>
+                <p style="color:#94a3b8;font-size:0.85rem;margin-bottom:1rem;">Verify that no blocks have been tampered with by checking the full SHA-256 hash chain.</p>
+                <button class="btn btn-primary" onclick="validateChain()">Validate Chain</button>
+                <div id="validate-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+            });
+        });
+
+        function showResult(id, data, isError = false) {
+            const el = document.getElementById(id);
+            el.className = 'result ' + (isError ? 'error' : 'success');
+            el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function apiCall(method, path, body = null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(API + path, opts);
+            const data = await res.json();
+            if (!res.ok) throw data.detail || data;
+            return data;
+        }
+
+        async function generateKeys() {
+            try {
+                const data = await apiCall('POST', '/generate-keys');
+                const el = document.getElementById('keys-result');
+                el.innerHTML = `
+                    <div class="warning" style="margin-top:1rem;">${data.warning}</div>
+                    <p style="color:#94a3b8;font-size:0.8rem;margin-bottom:0.3rem;">PRIVATE KEY (keep secret!):</p>
+                    <div class="key-display">${data.private_key}</div>
+                    <p style="color:#94a3b8;font-size:0.8rem;margin:0.8rem 0 0.3rem;">PUBLIC KEY (your identity):</p>
+                    <div class="key-display">${data.public_key}</div>
+                `;
+            } catch (e) { showResult('keys-result', e, true); }
+        }
+
+        async function registerProperty() {
+            try {
+                const data = await apiCall('POST', '/register-property', {
+                    property_id: document.getElementById('reg-property-id').value,
+                    owner_public_key: document.getElementById('reg-owner-key').value,
+                    location: document.getElementById('reg-location').value,
+                    area_sqft: parseFloat(document.getElementById('reg-area').value) || null,
+                    state: document.getElementById('reg-state').value,
+                    district: document.getElementById('reg-district').value,
+                    registration_number: document.getElementById('reg-number').value,
+                });
+                showResult('register-result', data);
+            } catch (e) { showResult('register-result', e, true); }
+        }
+
+        async function lookupProperty() {
+            try {
+                const id = document.getElementById('lookup-id').value;
+                const data = await apiCall('GET', '/property/' + encodeURIComponent(id));
+                showResult('lookup-result', data);
+            } catch (e) { showResult('lookup-result', e, true); }
+        }
+
+        async function verifyOwner() {
+            try {
+                const id = document.getElementById('verify-id').value;
+                const key = encodeURIComponent(document.getElementById('verify-key').value);
+                const data = await apiCall('GET', '/verify-owner/' + encodeURIComponent(id) + '?public_key=' + key);
+                const el = document.getElementById('verify-result');
+                if (data.is_verified) {
+                    el.className = 'result success';
+                    el.textContent = 'VERIFIED: The provided key IS the current owner.';
+                } else {
+                    el.className = 'result error';
+                    el.textContent = 'NOT VERIFIED: The provided key is NOT the current owner.';
+                }
+            } catch (e) { showResult('verify-result', e, true); }
+        }
+
+        async function initiateSale() {
+            try {
+                const data = await apiCall('POST', '/initiate-sale', {
+                    property_id: document.getElementById('sale-property-id').value,
+                    seller_public_key: document.getElementById('sale-seller-key').value,
+                    buyer_public_key: document.getElementById('sale-buyer-key').value,
+                    price_inr: parseFloat(document.getElementById('sale-price').value),
+                });
+                showResult('sale-result', data);
+            } catch (e) { showResult('sale-result', e, true); }
+        }
+
+        async function cancelSale() {
+            try {
+                const id = document.getElementById('cancel-property-id').value;
+                const data = await apiCall('DELETE', '/cancel-sale/' + encodeURIComponent(id));
+                showResult('cancel-result', data);
+            } catch (e) { showResult('cancel-result', e, true); }
+        }
+
+        async function confirmSale() {
+            try {
+                const data = await apiCall('POST', '/confirm-sale', {
+                    property_id: document.getElementById('conf-property-id').value,
+                    seller_public_key: document.getElementById('conf-seller-key').value,
+                    buyer_public_key: document.getElementById('conf-buyer-key').value,
+                    price_inr: parseFloat(document.getElementById('conf-price').value),
+                    seller_signature: document.getElementById('conf-signature').value,
+                });
+                showResult('confirm-result', data);
+            } catch (e) { showResult('confirm-result', e, true); }
+        }
+
+        async function getHistory() {
+            try {
+                const id = document.getElementById('history-id').value;
+                const data = await apiCall('GET', '/property/' + encodeURIComponent(id) + '/history');
+                const el = document.getElementById('history-result');
+                if (data.history.length === 0) {
+                    el.className = 'result';
+                    el.textContent = 'No history found for this property.';
+                    return;
+                }
+                let html = '<div class="timeline">';
+                data.history.forEach(h => {
+                    const date = new Date(h.timestamp * 1000).toLocaleString();
+                    const price = h.price_inr ? '₹' + h.price_inr.toLocaleString('en-IN') : 'N/A';
+                    html += `<div class="timeline-item">
+                        <div>
+                            <div class="type">${h.transaction_type} — Block #${h.block_index}</div>
+                            <div class="meta">${date} · Price: ${price}</div>
+                            ${h.buyer ? '<div class="meta">New Owner: ' + h.buyer.substring(0, 60) + '...</div>' : ''}
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                el.innerHTML = html;
+            } catch (e) { showResult('history-result', e, true); }
+        }
+
+        async function validateChain() {
+            try {
+                const data = await apiCall('GET', '/chain/validate');
+                const el = document.getElementById('validate-result');
+                el.innerHTML = `
+                    <div style="margin-top:1rem;">
+                        <span class="badge ${data.is_valid ? 'badge-green' : 'badge-red'}">${data.is_valid ? 'VALID' : 'INVALID'}</span>
+                        <span style="margin-left:0.5rem;color:#94a3b8;">${data.message}</span>
+                    </div>
+                    <div style="margin-top:0.5rem;color:#94a3b8;font-size:0.85rem;">Total blocks: ${data.total_blocks}</div>
+                `;
+            } catch (e) { showResult('validate-result', e, true); }
+        }
+    </script>
+</body>
+</html>

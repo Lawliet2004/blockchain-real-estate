@@ -1,0 +1,31 @@
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ── Virtual Environment ──────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Environment Secrets ──────────────────────────────
+.env
+
+# ── SQLite (no longer used, but just in case) ────────
+*.db
+
+# ── Testing ──────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+
+# ── IDE / Editor ─────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS Files ─────────────────────────────────────────
+.DS_Store
+Thumbs.db

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: blockchain-real-estate-ledger
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # You will set this manually in Render dashboard
+      - key: PYTHON_VERSION
+        value: "3.12.0"
